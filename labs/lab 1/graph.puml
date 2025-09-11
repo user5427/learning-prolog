@@ -1,0 +1,60 @@
+@startuml geneologinis medis
+
+
+' 3 kartos lygis
+[Antanas] as antanas
+[Ona] as ona
+[Juozas] as juozas
+[Marija] as marija
+
+' 2 kartos lygis
+[Petras] as petras
+[Audrone] as audrone
+[Jonas] as jonas
+[Rasa] as rasa
+[Mindaugas] as mindaugas
+[Giedre] as giedre
+
+' 1 kartos lygis
+[Tomas] as tomas
+[Ieva] as ieva
+[Mantas] as mantas
+[Simona] as simona
+[Andrius] as andrius
+[Laura] as laura
+
+' seimos
+circle seima1
+circle seima2
+circle seima3
+circle seima4
+circle seima5
+
+' 3 kartos rysiai
+antanas --> seima1
+ona --> seima1
+juozas --> seima2
+marija --> seima2
+
+' 3 kartos rysiai
+seima1 --> petras
+seima1 --> jonas
+seima2 --> mindaugas
+
+' 2 kartos rysiai
+petras --> seima3
+audrone --> seima3
+jonas --> seima4
+rasa --> seima4
+mindaugas --> seima5
+giedre --> seima5
+
+' 2 kartos rysiai
+seima3 --> tomas
+seima3 --> ieva
+seima4 --> mantas
+seima4 --> simona
+seima5 --> andrius
+seima5 --> laura
+
+@enduml
