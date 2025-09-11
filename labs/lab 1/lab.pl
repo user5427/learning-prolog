@@ -62,3 +62,10 @@ seserys(Sesuo1, Sesuo2) :- asmuo(Sesuo1, moteris, _, _), asmuo(Sesuo2, moteris, 
 vedes(Vedes) :- asmuo(Vedes, vyras, _, _), pora(Vedes, _).
 
 % 34 var - paveldejo(Asmuo, Pomegis) - Asmuo Asmuo turi tokį patį pomėgį Pomegis kaip ir vienas iš tėvų;
+
+paveldejo(Asmuo, Pomegis) :- mama(Mama, Asmuo), asmuo(Mama, _, _, Pomegis).
+paveldejo(Asmuo, Pomegis) :- mama(Mama, Asmuo), pora(Tetis, Mama), asmuo(Tetis, _, _, Pomegis).
+
+% 39 var - trys_draugai(Draugas1, Draugas2, Draugas3) - Asmenys Draugas1, Draugas2 ir Draugas3 yra panašaus amžiaus ir turi tą patį pomėgį;
+trys_draugai(Draugas1, Draugas2, Draugas3) :- asmuo(Draugas1, _, Amzius, Pomėgis), asmuo(Draugas2, _, Amzius, Pomėgis), asmuo(Draugas3, _, Amzius, Pomėgis). % obviously this wont cut it as the age has to be close, not exactly the same
+trys_draugai(Draugas1, Draugas2, Draugas3) :- asmuo(Draugas1, _, Amzius1, Pomėgis), asmuo(Draugas2, _, Amzius2, Pomėgis), asmuo(Draugas3, _, Amzius3, Pomėgis), abs(Amzius1 - Amzius2) =< 2, abs(Amzius1 - Amzius3) =< 2, abs(Amzius2 - Amzius3) =< 2.
