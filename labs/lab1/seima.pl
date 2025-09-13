@@ -55,7 +55,7 @@ asmuo(karolina, moteris, 17, dainuoti).
 asmuo(deimante, moteris, 14, siuvineti).
 
 
-% Motinos ryšiai 
+% Motinos-vaiko ryšiai 
 mama(ingrida, antanas).
 mama(ingrida, marija).
 mama(ingrida, kotryna).
