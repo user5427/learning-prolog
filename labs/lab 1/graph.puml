@@ -1,60 +1,105 @@
 @startuml geneologinis medis
 
+' 1 kartos lygis
+[Arnoldas] as arnoldas
+[Ingrida] as ingrida
 
-' 3 kartos lygis
+' 2 kartos lygis
 [Antanas] as antanas
 [Ona] as ona
 [Juozas] as juozas
 [Marija] as marija
+[Kotryna] as kotryna
+[Dainius] as dainius
 
-' 2 kartos lygis
+' 3 kartos lygis
 [Petras] as petras
 [Audrone] as audrone
 [Jonas] as jonas
 [Rasa] as rasa
 [Mindaugas] as mindaugas
 [Giedre] as giedre
+[Darius] as darius
+[Saule] as saule
+[Vaida] as vaida
+[Vytautas] as vytautas
+[Egle] as egle
+[Gustas] as gustas
 
-' 1 kartos lygis
+' 4 kartos lygis
 [Tomas] as tomas
 [Ieva] as ieva
 [Mantas] as mantas
 [Simona] as simona
 [Andrius] as andrius
 [Laura] as laura
+[Viktorija] as viktorija
+[Julius] as julius
+[Audrius] as audrius
+[Simas] as simas
+[Karolina] as karolina
+[Deimante] as deimante
 
 ' seimos
-circle seima1
-circle seima2
-circle seima3
-circle seima4
-circle seima5
+circle "AI seima" as seima1
+circle "AO seima" as seima2
+circle "JM seima" as seima3
+circle "DK seima" as seima33
+circle "PA seima" as seima4
+circle "JR seima" as seima5
+circle "MG seima" as seima6
+circle "DS seima" as seima7
+circle "VV seima" as seima8
+circle "GE seima" as seima9
 
-' 3 kartos rysiai
-antanas --> seima1
-ona --> seima1
-juozas --> seima2
-marija --> seima2
+' 1-2 karta
+arnoldas --> seima1
+ingrida --> seima1
 
-' 3 kartos rysiai
-seima1 --> petras
-seima1 --> jonas
-seima2 --> mindaugas
+seima1 --> antanas
+seima1 --> marija
+seima1 --> kotryna
 
-' 2 kartos rysiai
-petras --> seima3
-audrone --> seima3
-jonas --> seima4
-rasa --> seima4
-mindaugas --> seima5
-giedre --> seima5
+' 2-3 kartos rysiai
+antanas --> seima2
+ona --> seima2
+juozas --> seima3
+marija --> seima3
+kotryna --> seima33
+dainius --> seima33
 
-' 2 kartos rysiai
-seima3 --> tomas
-seima3 --> ieva
-seima4 --> mantas
-seima4 --> simona
-seima5 --> andrius
-seima5 --> laura
+seima2 --> petras
+seima2 --> jonas
+seima3 --> mindaugas
+seima33 --> darius
+seima33 --> vaida
+seima33 --> egle
+
+' 3-4 kartos rysiai
+petras --> seima4
+audrone --> seima4
+jonas --> seima5
+rasa --> seima5
+mindaugas --> seima6
+giedre --> seima6
+darius --> seima7
+saule --> seima7
+vaida --> seima8
+vytautas --> seima8
+egle --> seima9
+gustas --> seima9
+
+seima4 --> tomas
+seima4 --> ieva
+seima4 --> viktorija
+seima5 --> mantas
+seima5 --> simona
+seima6 --> andrius
+seima6 --> laura
+seima7 --> julius
+seima7 --> audrius
+seima8 --> simas
+seima9 --> karolina
+seima9 --> deimante
 
 @enduml
