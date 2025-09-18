@@ -96,7 +96,8 @@ pora(gustas, egle).
 
 seserys(Sesuo1, Sesuo2) :- 
     asmuo(Sesuo1, moteris, _, _),
-    asmuo(Sesuo2, moteris, _, _), 
+    asmuo(Sesuo2, moteris, _, _),
+    Sesuo1 \= Sesuo2,  
     mama(Mama, Sesuo1), 
     mama(Mama, Sesuo2).
 
@@ -161,8 +162,9 @@ trys_draugai(Draugas1, Draugas2, Draugas3) :-
     asmuo(Draugas1, _, Amzius1, Pomėgis), 
     asmuo(Draugas2, _, Amzius2, Pomėgis), 
     asmuo(Draugas3, _, Amzius3, Pomėgis), 
-    % Draugas1 @< Draugas2, 
-    % Draugas2 @< Draugas3,
+    Draugas1 \= Draugas2, 
+    Draugas1 \= Draugas3, 
+    Draugas2 \= Draugas3,
     abs(Amzius1 - Amzius2) =< 4, 
     abs(Amzius1 - Amzius3) =< 4,
     abs(Amzius2 - Amzius3) =< 4.
