@@ -1,4 +1,4 @@
-% Tadas Riksas, Programu sistemos 3 kuras, variantai: 7; 27; 34; 39
+% Tadas Riksas, Programu sistemos 3 kursas, variantai: 7; 27; 34; 39
 
 % Duomenų bazėje saugomi duomenys apie asmenis ir jų giminystės ryšius
 
@@ -97,15 +97,40 @@ pora(gustas, egle).
 seserys(Sesuo1, Sesuo2) :- 
     asmuo(Sesuo1, moteris, _, _),
     asmuo(Sesuo2, moteris, _, _), 
-    Sesuo1 @< Sesuo2, 
     mama(Mama, Sesuo1), 
     mama(Mama, Sesuo2).
+
+% ?- seserys(ieva, X).
+% X = viktorija ;
+% false.
+
+% ?- seserys(egle, vaida).
+% true.
 
 % 27 var - vedes(Vedes) - Asmuo Vedes yra vedęs (vyras);
 
 vedes(Vedes) :- 
     asmuo(Vedes, vyras, _, _), 
     pora(Vedes, _).
+
+% ?- vedes(petras).
+% true.
+
+% ?- vedes(X).
+% X = arnoldas ;
+% X = antanas ;
+% X = juozas ;
+% X = dainius ;
+% X = petras ;
+% X = jonas ;
+% X = mindaugas ;
+% X = darius ;
+% X = vytautas ;
+% X = gustas ;
+% false.
+
+% ?- vedes(tomas).
+% false.
 
 % 34 var - paveldejo(Asmuo, Pomegis) - Asmuo Asmuo turi tokį patį pomėgį Pomegis kaip ir vienas iš tėvų;
 
@@ -120,13 +145,30 @@ paveldejo(Asmuo, Pomegis) :-
     pora(Tetis, Mama), 
     asmuo(Tetis, _, _, Pomegis).
 
+% ?- paveldejo(egle, dainuoti).
+% true.
+
+% ?- paveldejo(egle, X).
+% X = dainuoti.
+
+% ?- paveldejo(X, dainuoti).
+% X = karolina ;
+% X = egle ;
+% false.
+
 % 39 var - trys_draugai(Draugas1, Draugas2, Draugas3) - Asmenys Draugas1, Draugas2 ir Draugas3 yra panašaus amžiaus ir turi tą patį pomėgį;
 trys_draugai(Draugas1, Draugas2, Draugas3) :- 
     asmuo(Draugas1, _, Amzius1, Pomėgis), 
     asmuo(Draugas2, _, Amzius2, Pomėgis), 
     asmuo(Draugas3, _, Amzius3, Pomėgis), 
-    Draugas1 @< Draugas2, 
-    Draugas2 @< Draugas3,
+    % Draugas1 @< Draugas2, 
+    % Draugas2 @< Draugas3,
     abs(Amzius1 - Amzius2) =< 4, 
     abs(Amzius1 - Amzius3) =< 4,
     abs(Amzius2 - Amzius3) =< 4.
+
+% ?- trys_draugai(X, Y, Z).
+% X = karolina,
+% Y = simona,
+% Z = viktorija ;
+% false.
