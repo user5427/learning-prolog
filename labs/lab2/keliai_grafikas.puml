@@ -1,0 +1,57 @@
+@startuml Lietuvos kelių tinklas
+
+
+' Miestai
+object vilnius 
+object kaunas 
+object trakai 
+object alytus 
+object marijampolė 
+object druskininkai 
+object ukmergė 
+object kėdainiai 
+object utena 
+object visaginas 
+object panevežys 
+object rokiškis 
+object šiauliai 
+object telšiai 
+object plungė 
+object klaipėda 
+object mažeikiai 
+object kryžkalnis 
+object palanga 
+object tauragė 
+object biržai 
+
+' Keliai su atstumais
+vilnius --> kaunas : 105 km
+vilnius --> trakai : 30 km
+trakai --> alytus : 70 km
+alytus --> marijampolė : 55 km
+alytus --> druskininkai : 35 km
+vilnius --> ukmergė : 80 km
+kaunas --> kėdainiai : 50 km
+kaunas --> ukmergė : 60 km
+ukmergė --> utena : 75 km
+utena --> visaginas : 40 km
+kėdainiai --> panevežys : 65 km
+ukmergė --> panevežys : 90 km
+utena --> rokiškis : 85 km
+panevežys --> šiauliai : 80 km
+šiauliai --> telšiai : 55 km
+telšiai --> plungė : 45 km
+plungė --> klaipėda : 60 km
+telšiai --> mažeikiai : 50 km
+kaunas --> kryžkalnis : 150 km
+kaunas --> marijampolė : 80 km
+kryžkalnis --> klaipėda : 120 km
+kryžkalnis --> šiauliai : 100 km
+kryžkalnis --> tauragė : 90 km
+klaipėda --> palanga : 30 km
+panevežys --> biržai : 70 km
+
+title Lietuvos miestų kelių tinklas
+caption Keliai tarp Lietuvos miestų su atstumais kilometrais
+
+@enduml
