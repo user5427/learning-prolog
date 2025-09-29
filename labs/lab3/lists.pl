@@ -98,6 +98,11 @@ skaiciuoti_pakartojimus([Pirmas | Like], Simbolis, Pasikartojimai, ReikalingiPas
 % X = [_A, _A, _A, b, b, b|_] ;
 % X = [_A, _A, _A, _B, _B, _B, b, b, b|...] 
 
+% ?- kart(X,3,Y).
+% X = [Y, Y, Y|_] ;
+% X = [_A, _A, _A, Y, Y, Y|_] ;
+% X = [_A, _A, _A, _B, _B, _B, Y, Y, Y|...] 
+
 % ?- kart([a,a,b,b], X, Y).
 % EXCEPTION (neinicializuotas kintamasis X)
 
@@ -122,50 +127,137 @@ skaiciuoti_pakartojimus([Pirmas | Like], Simbolis, Pasikartojimai, ReikalingiPas
 
 keisti(Sarasas, Keitiniai, Rezultatas) :- keitimas(Sarasas, Keitiniai, Rezultatas).
 
+keitimas([], _, []).
 keitimas([Pirmas | Like], K, [Pakeistas | Resto]) :-
     paieska_keitimo(Pirmas, K, Pakeistas),
     keitimas(Like, K, Resto).
 
-paieska_keitimo(Simbolis, [k(Taisykle, Pakeitimas) | Like], Pakeistas) :-
-    Simbolis == Taisykle,
-    Pakeistas = Pakeitimas.
+paieska_keitimo(Simbolis, [k(Simbolis, Pakeitimas) | Like], Pakeitimas).
 
 paieska_keitimo(Simbolis, [k(Taisykle, _) | Like], Pakeistas) :-
     Simbolis \== Taisykle,
     paieska_keitimo(Simbolis, Like, Pakeistas).
-    
+
+paieska_keitimo(Simbolis, [], Simbolis). % jei neranda taisykles, palieka simboli nepakeista
+
+% ?- keisti([a,c,b],[k(a,x),k(b,y)],R).
+% R = [x, c, y] ;
+% false.
+
+% ?- keisti([a,c,b],X,[x, c, y]).
+% X = [k(a, x), k(c, c), k(b, y)|_] ;
+% X = [k(a, x), k(c, c), k(_, _), k(b, y)|_] ;
+% X = [k(a, x), k(c, c), k(_, _), k(_, _), k(b, y)|_] ;
+% X = [k(a, x), k(c, c), k(_, _), k(_, _), k(_, _), k(b, y)|_] 
+
+% ?- keisti(X,[k(a,x),k(b,y)],[x, c, y]).
+% X = [a, c, b] ;
+% X = [a, c, y] ;
+% X = [x, c, b] ;
+% X = [x, c, y].
+
+
 
 % 4.8 skirt(S1,S2,Skirt) - S1 ir S2 yra skaičiai, vaizduojami skaitmenų sąrašais. Skirt - tų skaičių skirtumas, vaizduojamas skaitmenų sąrašu. Laikykite, kad S1 yra ne mažesnis už S2. Pavyzdžiui:
 % ?- skirt([9,4,6,1,2,8],[3,4],Skirt).
 
 % Skirt = [9,4,6,0,9,4].
 
+% ?
+skirt(PirmasSarasas, AntrasSarasas, Skirt) :-
+    apsukti(PirmasSarasas, PirmasApsuktas),
+    islyginti(PirmasApsuktas, AntrasSarasas, AntrasIslygintas),
+    apsukti(AntrasIslygintas, AntrasIslygintasApsuktas),
+    skirtumas_akum(PirmasApsuktas, AntrasIslygintasApsuktas, [], Skirtumas),
+    panaikinti_nulius_priekyje(Skirtumas, Skirt).
 
-i_skaiciu([], 0).
-i_skaiciu([H|T], Skaicius) :-
-    i_skaiciu(T, Dalis),
-    length(T, Ilgis),
-    Skaicius is H * 10^Ilgis + Dalis.
+skirtumas_akum([], [], Rezultatas, Rezultatas).
+skirtumas_akum(PirmasSarasas, [AntrasSkaitmuo|LikeAntri], Akumuliatorius, Rezultatas) :-
+    atimti_skaitmeni(PirmasSarasas, AntrasSkaitmuo, [Rez|LikePirmiApdoroti]),
+    skirtumas_akum(LikePirmiApdoroti, LikeAntri, [Rez|Akumuliatorius], Rezultatas).
 
-is_skaicios(0, [0]).
-is_skaicios(Skaicius, Sarasas) :-
-    Skaicius > 0,
-    is_skaicios_akumuliatyvi(Skaicius, [], Sarasas).
+% ?
+apsukti(Sarasas, Rezultatas) :-
+    apsukti_akum(Sarasas, [], Rezultatas).
 
-is_skaicios_akumuliatyvi(0, Akumuliatorius, Akumuliatorius).
-is_skaicios_akumuliatyvi(Skaicius, Akumuliatorius, Sarasas) :-
-    Skaicius > 0,
-    Skaicius1 is Skaicius // 10,
-    Skaicius2 is Skaicius mod 10,
-    is_skaicios_akumuliatyvi(Skaicius1, [Skaicius2 | Akumuliatorius], Sarasas).
+apsukti_akum([], Rezultatas, Rezultatas).
+apsukti_akum([Elementas|Like], Kaupiamas, Rezultatas) :-
+    apsukti_akum(Like, [Elementas|Kaupiamas], Rezultatas).
 
 
-skirt(S1, S2, Skirt) :-
-    i_skaiciu(S1, Skaicius1),
-    i_skaiciu(S2, Skaicius2),
-    SkirtasSkaicius is Skaicius1 - Skaicius2,
-    is_skaicios(SkirtasSkaicius, Skirt).
+% ?
+saraso_ilgis(Sarasas, Ilgis) :-
+    saraso_ilgis_akum(Sarasas, 0, Ilgis).
 
-% Operacijos su natūraliaisiais skaičiais, išreikštais skaitmenų sąrašais. Skaitmenų sąrašo elementai turi būti natūralūs skaičiai nuo 0 iki 9 (ne simboliai '0', '1',...). Nenaudokite Prolog konvertavimo tarp sąrašo ir skaičiaus predikatų (number_chars/2, number_codes/2 ir kt...):
+saraso_ilgis_akum([], Akumuliatorius, Akumuliatorius).
+saraso_ilgis_akum([_|Like], Akumuliatorius, Rezultatas) :-
+    NaujasAkumuliatorius is Akumuliatorius + 1,
+    saraso_ilgis_akum(Like, NaujasAkumuliatorius, Rezultatas).
 
-% Questionable requirements for the task above, maybe rewrite it using simple arithmetics...????
+
+% ?
+islyginti(PirmasSarasas, AntrasSarasas, Rezultatas) :- 
+    saraso_ilgis(PirmasSarasas, PirmoIlgis),
+    saraso_ilgis(AntrasSarasas, AntroIlgis),
+    Skirtumas is PirmoIlgis - AntroIlgis,
+    islyginti_akum(AntrasSarasas, Skirtumas, [], Rezultatas).
+
+islyginti_akum(AntrasSarasas, 0, Kaupiamas, Rezultatas) :-
+    sujungti_sarasus(Kaupiamas, AntrasSarasas, Rezultatas).
+
+islyginti_akum(AntrasSarasas, Skirtumas, Kaupiamas, Rezultatas) :-
+    Skirtumas > 0,
+    NaujasSkirtumas is Skirtumas - 1,
+    islyginti_akum(AntrasSarasas, NaujasSkirtumas, [0|Kaupiamas], Rezultatas).
+
+
+% ?
+sujungti_sarasus([], Sarasas, Sarasas).
+sujungti_sarasus([Pirmas|LikePirmi], Sarasas, [Pirmas|LikePirmiSujungtas]) :-
+    sujungti_sarasus(LikePirmi, Sarasas, LikePirmiSujungtas).
+
+
+% ?
+atimti_skaitmeni(Pirmas, Skaitmuo, Rezultatas) :-
+    atimti_skaitmeni_akum(Pirmas, Skaitmuo, [], Rezultatas).
+
+atimti_skaitmeni_akum([Pirmas|LikePirmi], Skaitmuo, Kaupiamas, Rezultatas) :-
+    Pirmas >= Skaitmuo,
+    Atimtis is Pirmas - Skaitmuo,
+    apsukti([Atimtis|Kaupiamas], KaupiamasApsuktas),
+    sujungti_sarasus(KaupiamasApsuktas, LikePirmi, Rezultatas).
+                                          
+atimti_skaitmeni_akum([Pirmas|LikePirmi], Skaitmuo, Kaupiamas, Rezultatas) :-
+    Pirmas < Skaitmuo,
+    PirmasPaskolintas is Pirmas + 10,
+    Atimtis is PirmasPaskolintas - Skaitmuo,
+    atimti_skaitmeni_akum(LikePirmi, 1, [Atimtis|Kaupiamas], Rezultatas).
+
+% ?
+panaikinti_nulius_priekyje([], []) :- !.
+panaikinti_nulius_priekyje([0], [0]) :- !.
+panaikinti_nulius_priekyje([0|Like], Rezultatas) :-
+    !,
+    panaikinti_nulius_priekyje(Like, Rezultatas).
+panaikinti_nulius_priekyje([Pirmas|Like], [Pirmas|Like]).
+
+
+% ?- skirt([9,4,6,1,2,8],[3,4],Skirt).
+% Skirt = [9, 4, 6, 0, 9, 4] ;
+% false.
+
+% ?- skirt([9,4,6,1,2,8],[3,4,0,0,0,0],Skirt).
+% Skirt = [6, 0, 6, 1, 2, 8] ;
+% false.
+
+% ?- skirt([9,4,6,1,2,8],[9,9,0,0,0,0],Skirt).
+% false.
+
+% ?- skirt([9,4,6,1,2,8],[3,4,0,0,0,0,0],Skirt).
+% false.
+
+% ?- skirt([5,0,2],X,[5, 0, 0]).
+% EXCEPTION (neinicializuotas kintamasis X)
+
+% ?- skirt(X,[3,4],[9, 4, 6, 0, 9, 4]).
+% EXCEPTION (neinicializuotas kintamasis X)
