@@ -6,7 +6,10 @@
 
 % M = 10.
 
-maxlyg([Pirmas | Like], M) :- max(Like, Pirmas, M).
+% patikrinti ar pirmas elementas yra lyginis
+
+maxlyg([Pirmas | Like], M) :- not(lyginis(Pirmas)), !, maxlyg(Like, M).
+maxlyg([Pirmas | Like], M) :- max(Like, Pirmas, M), !.
 
 max([], Maksimumas, Maksimumas) :- !, lyginis(Maksimumas). % atkirtimas kad neieškotų toliau
 
@@ -22,27 +25,29 @@ max([Pirmas | Like], Maksimumas, Grazinimas) :-
 
 lyginis(Skaicius) :- 0 is mod(Skaicius, 2).
 
-% ?- maxlyg([1,3,5], M).
-% false.
+% ?- maxlyg([5, 3, 4, 6], M).
+% M = 6.
 
-% ?- maxlyg([2,4,6], M).
-% M = 6 ;
-% false.
+% ?- maxlyg([5, 3, 4, 6], M).
+% M = 6.
 
-% ?- maxlyg([2], M).
-% M = 2.
+% ?- maxlyg([5, 3, 4], M).
+% M = 4.
+
+% ?- maxlyg([3, 4], M).
+% M = 4.
+
+% ?- maxlyg([3], M).
+% false.
 
 % ?- maxlyg([], M).
 % false.
 
-% ?- maxlyg([], 5).
-% false.
-
 % ?- maxlyg(S, 5).
-% false.
+% EXCEPTION (neinicializuotas kintamasis S)
 
 % ?- maxlyg(S, 6).
-% S = [6].
+% EXCEPTION (neinicializuotas kintamasis S)
 
 
 % 2.6 kart(S,K,E) - sąraše S yra K vienas po kito einančių vienodų elementų E. Pavyzdžiui:
@@ -50,28 +55,38 @@ lyginis(Skaicius) :- 0 is mod(Skaicius, 2).
 
 % E = b.
 
-kart([Pirmas | Like], K, E) :- 
-    skaiciuoti_pakartojimus(Like, Pirmas, 1, K, E).
+start :- kart([a,a,b,b,c,c], 2, E2),
+         fail.
+start.
 
+kart([Pirmas | Like], ReikalingiPasikartojimai, Simbolis) :- 
+    skaiciuoti_pakartojimus(Like, Pirmas, 1, ReikalingiPasikartojimai, Simbolis, netikrina).
 
+skaiciuoti_pakartojimus([], Simbolis, Pasikartojimai, Pasikartojimai, Simbolis, netikrina) :- !.
 
-skaiciuoti_pakartojimus(_, Simbolis, Pasikartojimai, ReikalingiPasikartojimai, Grazinimas) :-
-    Pasikartojimai == ReikalingiPasikartojimai,
-    Grazinimas = Simbolis.
+skaiciuoti_pakartojimus([Pirmas | Like], Simbolis, Pasikartojimai, Pasikartojimai, Simbolis, netikrina) :-
+    tikrinti(Like, Pirmas, 1, Pasikartojimai).
 
-skaiciuoti_pakartojimus([Pirmas | Like], Pirmas, Pasikartojimai, ReikalingiPasikartojimai, Grazinimas) :-
+skaiciuoti_pakartojimus([Pirmas | Like], Simbolis, Pasikartojimai, Pasikartojimai, Simbolis, netikrina) :-
+    not(tikrinti(Like, Pirmas, 1, Pasikartojimai)), 
+    !.
+
+tikrinti(Like, Pirmas, 1, Pasikartojimai) :-
+    skaiciuoti_pakartojimus(Like, Pirmas, 1, Pasikartojimai, _, tikrina), !.
+
+skaiciuoti_pakartojimus(_, Simbolis, Pasikartojimai, ReikalingiPasikartojimai, Simbolis, tikrina) :- 
+    Pasikartojimai = ReikalingiPasikartojimai.
+    
+skaiciuoti_pakartojimus([Pirmas | Like], Pirmas, Pasikartojimai, ReikalingiPasikartojimai, Grazinimas, Tikrinimas) :-
     Pasikartojimai < ReikalingiPasikartojimai,
     Pasikartojimai1 is Pasikartojimai + 1,
-    skaiciuoti_pakartojimus(Like, Pirmas, Pasikartojimai1, ReikalingiPasikartojimai, Grazinimas).
+    !,
+    skaiciuoti_pakartojimus(Like, Pirmas, Pasikartojimai1, ReikalingiPasikartojimai, Grazinimas, Tikrinimas).
 
-skaiciuoti_pakartojimus([Pirmas | Like], Simbolis, Pasikartojimai, ReikalingiPasikartojimai, Grazinimas) :-
-    Pirmas \== Simbolis,
-    skaiciuoti_pakartojimus(Like, Pirmas, 1, ReikalingiPasikartojimai, Grazinimas).
-
-skaiciuoti_pakartojimus([Pirmas | Like], Simbolis, Pasikartojimai, ReikalingiPasikartojimai, Grazinimas) :-
-    Pasikartojimai >= ReikalingiPasikartojimai,
-    skaiciuoti_pakartojimus(Like, Pirmas, 1, ReikalingiPasikartojimai, Grazinimas).
-
+skaiciuoti_pakartojimus([Pirmas | Like], _, _, ReikalingiPasikartojimai, Grazinimas, Tikrinimas) :-
+    !,
+    skaiciuoti_pakartojimus(Like, Pirmas, 1, ReikalingiPasikartojimai, Grazinimas, Tikrinimas),
+    !.
 
 
 % ?- kart([a,a,c,a,b,b,b,b,a,g],4,E).
@@ -107,42 +122,37 @@ skaiciuoti_pakartojimus([Pirmas | Like], Simbolis, Pasikartojimai, ReikalingiPas
 % EXCEPTION (neinicializuotas kintamasis X)
 
 
-% Seniau veike sitaip, taciau pakeiciau ir dabar nebeveikia. Labai sunku suderinti su kart(X, 3, b). veikimo principu.
-% ?- kart([a,a,b,b], X, Y).
-% X = 1,
-% Y = a ;
-% X = 2,
-% Y = a ;
-% X = 1,
-% Y = b ;
-% X = 2,
-% Y = b ;
-% false.
-
-
-% 3.7 keisti(S,K,R) - duotas sąrašas S. Duotas sąrašas K, nusakantis keitinį ir susidedantis iš elementų pavidalo k(KeiciamasSimbolis, PakeistasSimbolis). R - rezultatas, gautas pritaikius sąrašui S keitinį K. Pavyzdžiui:
-% ?- keisti([a,c,b],[k(a,x),k(b,y)],R).
+% 3.7 keisti(S,K,R) - duotas sąrašas S. Duotas sąrašas K, nusakantis keitinį ir
+% susidedantis iš elementų pavidalo k(KeiciamasSimbolis, PakeistasSimbolis). R -
+% rezultatas, gautas pritaikius sąrašui S keitinį K. Pavyzdžiui: ?-
+% keisti([a,c,b],[k(a,x),k(b,y)],R).
 
 % R = [x,c,y].
 
-keisti(Sarasas, Keitiniai, Rezultatas) :- keitimas(Sarasas, Keitiniai, Rezultatas).
+keisti([], _, []).
+keisti([Pirmas | Like], K, [Pakeistas | Resto]) :-
+    paieska_keitimo(Pirmas, K, Pakeistas, nepraleista),
+    keisti(Like, K, Resto).
 
-keitimas([], _, []).
-keitimas([Pirmas | Like], K, [Pakeistas | Resto]) :-
-    paieska_keitimo(Pirmas, K, Pakeistas),
-    keitimas(Like, K, Resto).
+paieska_keitimo(Simbolis, [], Simbolis, nepraleista) :- !.
 
-paieska_keitimo(Simbolis, [k(Simbolis, Pakeitimas) | Like], Pakeitimas).
+paieska_keitimo(Simbolis, [k(Simbolis, Pakeistas) | _], Pakeistas, _).
 
-paieska_keitimo(Simbolis, [k(Taisykle, _) | Like], Pakeistas) :-
-    Simbolis \== Taisykle,
-    paieska_keitimo(Simbolis, Like, Pakeistas).
+paieska_keitimo(Simbolis, [k(KitasSimbolis, _) | Like], Pakeitimas, _) :-
+    Simbolis == KitasSimbolis,
+    !,
+    paieska_keitimo(Simbolis, Like, Pakeitimas, praleista).
 
-paieska_keitimo(Simbolis, [], Simbolis). % jei neranda taisykles, palieka simboli nepakeista
+paieska_keitimo(Simbolis, [k(_, _) | Like], Pakeitimas, Praleidimas) :-
+    paieska_keitimo(Simbolis, Like, Pakeitimas, Praleidimas).
+
+
+% ?- keisti([a,c,b],[k(a,x),k(a,y),k(c,g)],R).
+% R = [x, g, b] ;
+% R = [y, g, b].
 
 % ?- keisti([a,c,b],[k(a,x),k(b,y)],R).
-% R = [x, c, y] ;
-% false.
+% R = [x, c, y].
 
 % ?- keisti([a,c,b],X,[x, c, y]).
 % X = [k(a, x), k(c, c), k(b, y)|_] ;
@@ -158,8 +168,10 @@ paieska_keitimo(Simbolis, [], Simbolis). % jei neranda taisykles, palieka simbol
 
 
 
-% 4.8 skirt(S1,S2,Skirt) - S1 ir S2 yra skaičiai, vaizduojami skaitmenų sąrašais. Skirt - tų skaičių skirtumas, vaizduojamas skaitmenų sąrašu. Laikykite, kad S1 yra ne mažesnis už S2. Pavyzdžiui:
-% ?- skirt([9,4,6,1,2,8],[3,4],Skirt).
+% 4.8 skirt(S1,S2,Skirt) - S1 ir S2 yra skaičiai, vaizduojami skaitmenų
+% sąrašais. Skirt - tų skaičių skirtumas, vaizduojamas skaitmenų sąrašu.
+% Laikykite, kad S1 yra ne mažesnis už S2. Pavyzdžiui: ?-
+% skirt([9,4,6,1,2,8],[3,4],Skirt).
 
 % Skirt = [9,4,6,0,9,4].
 
@@ -169,7 +181,7 @@ skirt(PirmasSarasas, AntrasSarasas, Skirt) :-
     islyginti(PirmasApsuktas, AntrasSarasas, AntrasIslygintas),
     apsukti(AntrasIslygintas, AntrasIslygintasApsuktas),
     skirtumas_akum(PirmasApsuktas, AntrasIslygintasApsuktas, [], Skirtumas),
-    panaikinti_nulius_priekyje(Skirtumas, Skirt).
+    panaikinti_nulius_priekyje(Skirtumas, Skirt), !.
 
 skirtumas_akum([], [], Rezultatas, Rezultatas).
 skirtumas_akum(PirmasSarasas, [AntrasSkaitmuo|LikeAntri], Akumuliatorius, Rezultatas) :-
@@ -243,17 +255,15 @@ panaikinti_nulius_priekyje([Pirmas|Like], [Pirmas|Like]).
 
 
 % ?- skirt([9,4,6,1,2,8],[3,4],Skirt).
-% Skirt = [9, 4, 6, 0, 9, 4] ;
-% false.
+% Skirt = [9, 4, 6, 0, 9, 4].
 
-% ?- skirt([9,4,6,1,2,8],[3,4,0,0,0,0],Skirt).
-% Skirt = [6, 0, 6, 1, 2, 8] ;
-% false.
+% ?- skirt([9,4,6,1,2,8],[3,4],Skirt).
+% Skirt = [9, 4, 6, 0, 9, 4].
 
 % ?- skirt([9,4,6,1,2,8],[9,9,0,0,0,0],Skirt).
 % false.
 
-% ?- skirt([9,4,6,1,2,8],[3,4,0,0,0,0,0],Skirt).
+%  ?- skirt([9,4,6,1,2,8],[3,4,0,0,0,0,0],Skirt).
 % false.
 
 % ?- skirt([5,0,2],X,[5, 0, 0]).
@@ -261,3 +271,7 @@ panaikinti_nulius_priekyje([Pirmas|Like], [Pirmas|Like]).
 
 % ?- skirt(X,[3,4],[9, 4, 6, 0, 9, 4]).
 % EXCEPTION (neinicializuotas kintamasis X)
+
+% ?- skirt([5, 0], [5, 0], X).
+% X = [0].
+
