@@ -88,6 +88,12 @@ skaiciuoti_pakartojimus([Pirmas | Like], _, _, ReikalingiPasikartojimai, Grazini
 % ?- kart([a,a,a,b,b,b,b,c,c,e], 4, E).
 % E = b.
 
+% ?- kart([a,a,a,b,b,b,b,c,c,e], 40, E).
+% false.
+
+% ?- kart([a,a,a,b,b,b,b,c,c,e], 0, E).
+% false.
+
 % ?- kart([a,a,a,b,b,b,b,c,c,e], 2, E).
 % E = a ;
 % E = b ;
@@ -116,29 +122,30 @@ skaiciuoti_pakartojimus([Pirmas | Like], _, _, ReikalingiPasikartojimai, Grazini
 
 keisti([], _, []).
 keisti([Pirmas | Like], K, [Pakeistas | Resto]) :-
-    paieska_keitimo(Pirmas, K, Pakeistas),
+    is_list(K),
+    paieska_keitimo(Pirmas, K, Pakeistas, _),
     keisti(Like, K, Resto).
 
 tikrinti_keitima(Simbolis, Like) :- 
-    paieska_keitimo(Simbolis, Like, Pakeista), 
-    Simbolis \= Pakeista,
+    paieska_keitimo(Simbolis, Like, Pakeista, pakeistas), 
     !.
 
-paieska_keitimo(Simbolis, [], Simbolis) :- !.
+paieska_keitimo(Simbolis, [], Simbolis, nepakeistas) :- 
+    !.
 
-paieska_keitimo(Simbolis, [k(Simbolis, Pakeistas) | LikeKeitiniai], Pakeistas) :- 
+paieska_keitimo(Simbolis, [k(Simbolis, Pakeistas) | LikeKeitiniai], Pakeistas, pakeistas) :- 
     not(tikrinti_keitima(Simbolis, LikeKeitiniai)),
     !.
 
-paieska_keitimo(Simbolis, [k(Simbolis, Pakeistas) | LikeKeitiniai], Pakeistas) :-
+paieska_keitimo(Simbolis, [k(Simbolis, Pakeistas) | LikeKeitiniai], Pakeistas, pakeistas) :-
     tikrinti_keitima(Simbolis, LikeKeitiniai).
 
-paieska_keitimo(Simbolis, [k(Simbolis, _) | Like], Pakeitimas) :-
+paieska_keitimo(Simbolis, [k(Simbolis, _) | Like], Pakeitimas, Keisti) :-
     !,
-    paieska_keitimo(Simbolis, Like, Pakeitimas).
+    paieska_keitimo(Simbolis, Like, Pakeitimas, Keisti).
 
-paieska_keitimo(Simbolis, [k(_, _) | Like], Pakeitimas) :-
-    paieska_keitimo(Simbolis, Like, Pakeitimas).
+paieska_keitimo(Simbolis, [k(_, _) | Like], Pakeitimas, Keisti) :-
+    paieska_keitimo(Simbolis, Like, Pakeitimas, Keisti).
 
 
 % ?- keisti([a,c,b],[k(a,x),k(a,y),k(c,g)],R).
@@ -148,6 +155,11 @@ paieska_keitimo(Simbolis, [k(_, _) | Like], Pakeitimas) :-
 % ?- keisti([a,c,b],[k(a,x),k(b,y)],R).
 % R = [x, c, y].
 
+% ?- keisti([a,c,b],[k(a,x),k(a,y),k(a,a)],R).
+% R = [x, c, b] ;
+% R = [y, c, b] ;
+% R = [a, c, b].
+
 % ?- keisti([a,c,b],X,[x, c, y]).
 % false.
 
@@ -155,8 +167,7 @@ paieska_keitimo(Simbolis, [k(_, _) | Like], Pakeitimas) :-
 % false.
 
 % ?- keisti(X,U,[x, c, y]).
-% X = [x, c, y],
-% U = [].
+% false.
 
 % 4.8 skirt(S1,S2,Skirt) - S1 ir S2 yra skaičiai, vaizduojami skaitmenų
 % sąrašais. Skirt - tų skaičių skirtumas, vaizduojamas skaitmenų sąrašu.
