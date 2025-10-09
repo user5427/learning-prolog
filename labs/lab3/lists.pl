@@ -16,11 +16,11 @@ max([], Maksimumas, Maksimumas) :- !, lyginis(Maksimumas). % atkirtimas kad neie
 max([Pirmas | Like], Maksimumas, Grazinimas) :-
     lyginis(Pirmas),
     Pirmas > Maksimumas,
+    !,
     max(Like, Pirmas, Grazinimas).
 
 max([Pirmas | Like], Maksimumas, Grazinimas) :-
-    lyginis(Pirmas),
-    Pirmas =< Maksimumas, 
+    !,
     max(Like, Maksimumas, Grazinimas).
 
 lyginis(Skaicius) :- 0 is mod(Skaicius, 2).
@@ -28,11 +28,14 @@ lyginis(Skaicius) :- 0 is mod(Skaicius, 2).
 % ?- maxlyg([5, 3, 4, 6], M).
 % M = 6.
 
-% ?- maxlyg([5, 3, 4, 6], M).
-% M = 6.
-
 % ?- maxlyg([5, 3, 4], M).
 % M = 4.
+
+% ?- maxlyg([5, 2, 3, 4], M).
+% M = 4.
+
+% ?- maxlyg([5, 9, 2, 13, 12, 3, 4], M).
+% M = 12.
 
 % ?- maxlyg([3, 4], M).
 % M = 4.
@@ -140,11 +143,8 @@ paieska_keitimo(Simbolis, [k(Simbolis, Pakeistas) | LikeKeitiniai], Pakeistas, p
 paieska_keitimo(Simbolis, [k(Simbolis, Pakeistas) | LikeKeitiniai], Pakeistas, pakeistas) :-
     tikrinti_keitima(Simbolis, LikeKeitiniai).
 
-paieska_keitimo(Simbolis, [k(Simbolis, _) | Like], Pakeitimas, Keisti) :-
-    !,
-    paieska_keitimo(Simbolis, Like, Pakeitimas, Keisti).
-
 paieska_keitimo(Simbolis, [k(_, _) | Like], Pakeitimas, Keisti) :-
+    !,
     paieska_keitimo(Simbolis, Like, Pakeitimas, Keisti).
 
 
@@ -164,7 +164,7 @@ paieska_keitimo(Simbolis, [k(_, _) | Like], Pakeitimas, Keisti) :-
 % false.
 
 % ?- keisti(X,[k(a,x),k(b,y)],[x, c, y]).
-% false.
+% X = [a, c, b].
 
 % ?- keisti(X,U,[x, c, y]).
 % false.
