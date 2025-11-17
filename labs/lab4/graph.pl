@@ -22,6 +22,14 @@ append([Head|Tail], List, [Head|Result]) :- append(Tail, List, Result).
 member(Element, [Element|_]).
 member(Element, [_|Tail]) :- member(Element, Tail).
 
+n_member(Element, List, N) :-
+    N1 is N - 1,
+    nth1(N1, List, Element).
+
+member_coordinate(Vertex, Positions, Coord) :-
+    member(position(Vertex, X, Y), Positions),
+    Coord = coordinate(X, Y).
+
 range(Low, High, Low).
 range(Low, High, Result) :-
     Low < High,
@@ -40,38 +48,61 @@ append_lists([List|Lists], Acc, Result) :-
 
 
 % ?- /\/\/\/\
-solve(Vertices, Edges, Grid, Attempts_Limit, Positions) :-
-    search_positions(Vertices, Edges, Grid, Attempts_Limit, 0, Positions).
+solve(Vertices, Edges, Grid, Limit, Positions) :-
+    search_positions(0, Vertices, Edges, Grid, Limit, 0, [], Positions).
 
 
 % ?- /\/\/\/\
-search_positions(_, _, _, Attempts_Limit, Attempts_Limit, _) :- !, fail.
+search_positions(_, _, _, _, Limit, Attempts, _, _) :- 
+    Attempts > Limit,
+    !, 
+    fail.
 
-search_positions(Vertices, Edges, Grid, Attempts_Limit, Vertex_Index, Positions) :-
+search_positions(Vertex_Index, Vertices, Edges, Grid, Limit, Attempts, Acc, Positions) :-
     length(Vertices, Num_Vertices),
-    Num_Vertices = Vertex_Index, !,
-    \+ has_crossings(Edges, Positions).
+    Vertex_Index = Num_Vertices, 
+    not(has_crossings(Edges, Positions)),
+    !,
+    Positions = Acc.
 
-search_positions(Vertices, Edges, Grid, Attempts_Limit, Vertex_Index, Positions) :-
-    t_search_positions(Vertices, Edges, Grid, Attempts_Limit, Vertex_Index, [], 0, Positions).
+search_positions(Vertex_Index, Vertices, Edges, Grid, Limit, Attempts, Acc, Positions) :-
+    !,
+    Next_Attempt is Attempts + 1,
+    t_search_positions(Vertex_Index, Vertices, Edges, Grid, Limit, Next_Attempt, 0, [], Positions).
 
-t_search_positions(Vertices, Edges, grid(SizeX, SizeY), Attempts_Limit, Vertex_Index, Acc, X, Result) :-
+
+t_search_positions(Vertex_Index, Vertices, Edges, Grid, Limit, Attempts, X, Acc, Result) :-
+    Grid = grid(SizeX, SizeY),
     X < SizeX,
-    tt_search_positions_inner(Vertices, Edges, grid(SizeX, SizeY), Attempts_Limit, Vertex_Index, Inner_Acc, X, 0, Result), !.
+    tt_search_positions(Vertex_Index, Vertices, Edges, Grid, Limit, Attempts, X, 0, Acc, Result).
+
+t_search_positions(Vertex_Index, Vertices, Edges, Grid, Limit, Attempts, X, Acc, Result) :-
+    Grid = grid(SizeX, SizeY),
+    X < SizeX,
+    not(tt_search_positions(Vertex_Index, Vertices, Edges, Grid, Limit, Attempts, X, 0, _, _)),
     Next_X is X + 1,
-    t_search_positions(Vertices, Edges, grid(SizeX, SizeY), Attempts_Limit, Vertex_Index, Acc, Next_X, Result).
+    t_search_positions(Vertex_Index, Vertices, Edges, Grid, Limit, Attempts, Next_X, Acc, Result).
 
-t_search_positions(Vertices, Edges, grid(SizeX, SizeY), Attempts_Limit, Vertex_Index, Acc, SizeX, Acc).
     
-
-
-tt_search_positions_inner(Vertices, Edges, grid(SizeX, SizeY), Attempts_Limit, Vertex_Index, Acc, X, Y, Result) :-
+tt_search_positions(Vertex_Index, Vertices, Edges, Grid, Limit, Attempts, X, Y, Acc, Result) :-
+    Grid = grid(SizeX, SizeY),
     Y < SizeY,
-    position_occupied(X, Y, Positions), !,
+    position_occupied(X, Y, Acc), 
+    !,
     Next_Y is Y + 1,
-    tt_search_positions_inner(Vertices, Edges, grid(SizeX, SizeY), Attempts_Limit, Vertex_Index, Acc, X, Next_Y, Result).
+    tt_search_positions(Vertex_Index, Vertices, Edges, Grid, Limit, Attempts, X, Next_Y, Acc, Result).
 
-tt_search_positions_inner(Vertices, Edges, grid(SizeX, SizeY), Attempts_Limit, Vertex_Index, Acc, X, SizeY, Acc).
+tt_search_positions(Vertex_Index, Vertices, Edges, Grid, Limit, Attempts, X, Y, Acc, Result) :-
+    Grid = grid(SizeX, SizeY),
+    Y < SizeY,
+    not(position_occupied(X, Y, Acc)),
+    !,
+    n_member(Vertex, Vertices, Vertex_Index),
+    New_Positions = [position(Vertex_Index, X, Y) | Acc],
+    Positioned_Edges = get_positioned_edges(Edges, New_Positions, Positioned_Edges_Result),
+    not(has_crossings(Positioned_Edges_Result, New_Positions)),
+    Next_Vertex_Index is Vertex_Index + 1,
+    search_positions(Next_Vertex_Index, Vertices, Edges, Grid, Limit, Attempts, New_Positions, Result).
 
 
 % ?- /\/\/\/\
@@ -94,95 +125,94 @@ t_get_positioned_edges([edge(Vertex1, Vertex2)|Edges], Positions, Acc, Result) :
 has_crossings(Edges, Positions) :-
     t_has_crossings(Edges, Positions).
 
-t_has_crossings([edge(Vertex1, Vertex2)|Edges], Positions) :-
-    tt_has_crossings_inner(Vertex1, Vertex2, Edges, Positions),
-    t_has_crossings(Edges, Positions).
+t_has_crossings([edge(Vertex1, Vertex2)|Rest_Edges], Positions) :-
+    tt_has_crossings_inner(Vertex1, Vertex2, Rest_Edges, Positions).
 
-tt_has_crossings_inner(Vertex1, Vertex2, [edge(Vertex3, Vertex4)|Edges], Positions) :-
-    segments_intersect(Vertex1, Vertex2, Vertex3, Vertex4, Positions),
-    tt_has_crossings_inner(Vertex1, Vertex2, Edges, Positions).
+t_has_crossings([edge(Vertex1, Vertex2)|Rest_Edges], Positions) :-
+    not(tt_has_crossings_inner(Vertex1, Vertex2, Rest_Edges, Positions)),
+    t_has_crossings(Rest_Edges, Positions).
 
+tt_has_crossings_inner(Vertex1, Vertex2, [edge(Vertex3, Vertex4)|Rest_Edges], Positions) :-
+    member_coordinate(Vertex1, Positions, Coord1),
+    member_coordinate(Vertex2, Positions, Coord2),
+    member_coordinate(Vertex3, Positions, Coord3),
+    member_coordinate(Vertex4, Positions, Coord4),
+    segments_intersect(Coord1, Coord2, Coord3, Coord4), !.
+
+tt_has_crossings_inner(Vertex1, Vertex2, [edge(Vertex3, Vertex4)|Rest_Edges], Positions) :-
+    member_coordinate(Vertex1, Positions, Coord1),
+    member_coordinate(Vertex2, Positions, Coord2),
+    member_coordinate(Vertex3, Positions, Coord3),
+    member_coordinate(Vertex4, Positions, Coord4),
+    not(segments_intersect(Coord1, Coord2, Coord3, Coord4)),
+    tt_has_crossings_inner(Vertex1, Vertex2, Rest_Edges, Positions).
 
 % ?- /\/\/\/\
-orientation(position(P, PX, PY), position(Q, QX, QY), position(R, RX, RY), collinear) :-
+orientation(coordinate(PX, PY), coordinate(QX, QY), coordinate(RX, RY), collinear) :-
     Val is (QY - PY) * (RX - QX) - (QX - PX) * (RY - QY),
     Val = 0.
 
-orientation(position(P, PX, PY), position(Q, QX, QY), position(R, RX, RY), clockwise) :-
+orientation(coordinate(PX, PY), coordinate(QX, QY), coordinate(RX, RY), clockwise) :-
     Val is (QY - PY) * (RX - QX) - (QX - PX) * (RY - QY),
     Val > 0.
 
-orientation(position(P, PX, PY), position(Q, QX, QY), position(R, RX, RY), counterclockwise) :-
+orientation(coordinate(PX, PY), coordinate(QX, QY), coordinate(RX, RY), counterclockwise) :-
     Val is (QY - PY) * (RX - QX) - (QX - PX) * (RY - QY),
     Val < 0.
 
 
 % ?- /\/\/\/\
-on_segment(position(P, PX, PY), position(Q, QX, QY), position(R, RX, RY)) :-
+on_segment(coordinate(PX, PY), coordinate(QX, QY), coordinate(RX, RY)) :-
     QX =< max(PX, RX), QX >= min(PX, RX),
     QY =< max(PY, RY), QY >= min(PY, RY).
 
 
 % ?- /\/\/\/\
-segments_intersect(Vertex1, Vertex2, Vertex1, Vertex3, _) :- !, fail.
-segments_intersect(Vertex1, Vertex2, Vertex3, Vertex1, _) :- !, fail.
-segments_intersect(Vertex1, Vertex2, Vertex2, Vertex3, _) :- !, fail.
-segments_intersect(Vertex1, Vertex2, Vertex3, Vertex2, _) :- !, fail.
+segments_intersect(Coord1, Coord2, Coord1, Coord3) :- !, fail.
+segments_intersect(Coord1, Coord2, Coord3, Coord1) :- !, fail.
+segments_intersect(Coord1, Coord2, Coord2, Coord3) :- !, fail.
+segments_intersect(Coord1, Coord2, Coord3, Coord2) :- !, fail.
 
-segments_intersect(Vertex1, Vertex2, Vertex3, Vertex4, Positions) :-
-    t_segments_intersect(Vertex1, Vertex2, Vertex3, Vertex4, Positions,
-        O1, O2, O3, O4,
-        _, _, _, _),
+% General case
+segments_intersect(Coord1, Coord2, Coord3, Coord4) :-
+    t_segments_orientation(Coord1, Coord2, Coord3, Coord4,
+        O1, O2, O3, O4),
     O1 \= O2,
     O3 \= O4.
 
-segments_intersect(Vertex1, Vertex2, Vertex1, Vertex3, Positions) :-
-    t_segments_intersect(Vertex1, Vertex2, Vertex1, Vertex3, Positions,
-        O1, O2, O3, O4,
-        P1, P2, P3, P4),
+% Special Cases - Collinear points
+segments_intersect(Coord1, Coord2, Coord3, Coord4) :-
+    t_segments_orientation(Coord1, Coord2, Coord3, Coord4,
+        O1, O2, O3, O4),
     
     O3 = collinear,
-    on_segment(P1, P3, P2).
+    on_segment(Coord1, Coord3, Coord2).
 
-segments_intersect(Vertex1, Vertex2, Vertex2, Vertex3, Positions) :-
-    t_segments_intersect(Vertex1, Vertex2, Vertex2, Vertex3, Positions,
-        O1, O2, O3, O4,
-        P1, P2, P3, P4),
-
-    O3 = collinear,
-    on_segment(P1, P4, P2).
-
-segments_intersect(Vertex1, Vertex2, Vertex3, Vertex1, Positions) :-
-    t_segments_intersect(Vertex1, Vertex2, Vertex3, Vertex1, Positions,
-        O1, O2, O3, O4,
-        P1, P2, P3, P4),
+segments_intersect(Coord1, Coord2, Coord3, Coord4) :-
+    t_segments_orientation(Coord1, Coord2, Coord3, Coord4,
+        O1, O2, O3, O4),
 
     O3 = collinear,
-    on_segment(P3, P1, P4).
+    on_segment(Coord1, Coord4, Coord2).
 
-segments_intersect(Vertex1, Vertex2, Vertex3, Vertex2, Positions) :-
-    t_segments_intersect(Vertex1, Vertex2, Vertex3, Vertex2, Positions,
-        O1, O2, O3, O4,
-        P1, P2, P3, P4),
+segments_intersect(Coord1, Coord2, Coord3, Coord4) :-
+    t_segments_orientation(Coord1, Coord2, Coord3, Coord4,
+        O1, O2, O3, O4),
 
     O3 = collinear,
-    on_segment(P3, P2, P4).
+    on_segment(Coord3, Coord1, Coord4).
 
-t_segments_intersect(Vertex1, Vertex2, Vertex3, Vertex4, Positions,
-    O1, O2, O3, O4,
-    P1, P2, P3, P4) :-
-    member(position(Vertex1, X1, Y1), Positions),
-    member(position(Vertex2, X2, Y2), Positions),
-    member(position(Vertex3, X3, Y3), Positions),
-    member(position(Vertex4, X4, Y4), Positions),
+segments_intersect(Coord1, Coord2, Coord3, Coord4) :-
+    t_segments_orientation(Coord1, Coord2, Coord3, Coord4,
+        O1, O2, O3, O4),
 
-    P1 = position(Vertex1, X1, Y1),
-    P2 = position(Vertex2, X2, Y2),
-    P3 = position(Vertex3, X3, Y3),
-    P4 = position(Vertex4, X4, Y4),
+    O3 = collinear,
+    on_segment(Coord3, Coord2, Coord4).
 
-    orientation(P1, P2, P3, O1),
-    orientation(P1, P2, P4, O2),
-    orientation(P3, P4, P1, O3),
-    orientation(P3, P4, P2, O4).
+t_segments_orientation(Coord1, Coord2, Coord3, Coord4,
+    O1, O2, O3, O4) :-
+    orientation(Coord1, Coord2, Coord3, O1),
+    orientation(Coord1, Coord2, Coord4, O2),
+    orientation(Coord3, Coord4, Coord1, O3),
+    orientation(Coord3, Coord4, Coord2, O4).
 
