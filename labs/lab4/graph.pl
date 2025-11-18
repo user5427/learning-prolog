@@ -229,10 +229,21 @@ printer([H|T]) :-
 
 % Test 8: Small cross (plus sign)
 % try([c, n, s, e, w], [edge(c, n), edge(c, s), edge(c, e), edge(c, w)], grid(5,5), Positions).
+
+% Test 9:
+% try([a, b, c, d], [edge(a, b), edge(b, c), edge(c, d), edge(d, a), edge(a, c), edge(b, d)], grid(5,5), Positions).
+
+% Test 10: 
+% try([a1, a2, b1, b2, c1, c2, d1, d2], [edge(a1, a2), edge(a2, b2), edge(b2, b1), edge(b1, a1), edge(c1, c2), edge(c2, d2), edge(d2, d1), edge(d1, c1), edge(a1, c1), edge(a2, c2), edge(b1, d1), edge(b2, d2)], grid(7,7), Positions).
+
+% Test 11: Two boxes
+% try([a, b, c, d, e, f, g, h], [edge(a, b), edge(b, c), edge(c, d), edge(d, a), edge(e, f), edge(f, g), edge(g, h), edge(h, e)], grid(7,7), Positions).
+
+
 % ?- Entry point for trying to solve and display a graph
 try(Vertices, Edges, Grid, Positions) :-
-    solve(Vertices, Edges, Grid, 100, Positions, scale(4,4)),
-    display(Vertices, Edges, Positions, Grid, scale(4,4), 3).
+    solve(Vertices, Edges, Grid, 100, Positions, scale(3,3)),
+    display(Vertices, Edges, Positions, Grid, scale(3,3), 3).
 
 try(Vertices, Edges, Grid, Positions, Depth_Limit, Scale, Name_Limit) :-
     solve(Vertices, Edges, Grid, Depth_Limit, Positions, Scale),
@@ -338,46 +349,41 @@ search_positions(Vertex_Index, Vertices, Edges, Grid, Limit, Depth, Acc, Positio
 % t_search_positions(0, [v1, v2, v3, v4], [edge(v1, v2), edge(v2, v3), edge(v3, v4)], grid(4,4), 10, 0, 0, [], Result). % 
 t_search_positions(Vertex_Index, Vertices, Edges, Grid, Limit, Depth, X, Acc, Result, Scale) :-
     Grid = grid(SizeX, SizeY),
-    X < SizeX,
-    tt_search_positions(Vertex_Index, Vertices, Edges, Grid, Limit, Depth, X, 0, Acc, Result, Scale).
+    X >= SizeX,
+    !,
+    fail.
 
 t_search_positions(Vertex_Index, Vertices, Edges, Grid, Limit, Depth, X, Acc, Result, Scale) :-
     Grid = grid(SizeX, SizeY),
-    X < SizeX,
-    Next_X is X + 1,
+    tt_search_positions(Vertex_Index, Vertices, Edges, Grid, Limit, Depth, X, 0, Acc, Result, Scale).
+
+t_search_positions(Vertex_Index, Vertices, Edges, Grid, Limit, Depth, X, Acc, Result, Scale) :-
     !,
+    Next_X is X + 1,
     t_search_positions(Vertex_Index, Vertices, Edges, Grid, Limit, Depth, Next_X, Acc, Result, Scale).
 
 % tt_search_positions(0, [v1, v2, v3, v4], [edge(v1, v2), edge(v2, v3), edge(v3, v4)], grid(4,4), 10, 0, 0, 0, [], Result). % 
 tt_search_positions(Vertex_Index, Vertices, Edges, Grid, Limit, Depth, X, Y, Acc, Result, Scale) :-
     Grid = grid(SizeX, SizeY),
-    Y < SizeY,
-    position_occupied(X, Y, Acc), 
+    Y >= SizeY,
     !,
-    Next_Y is Y + 1,
-    tt_search_positions(Vertex_Index, Vertices, Edges, Grid, Limit, Depth, X, Next_Y, Acc, Result, Scale).
+    fail.
 
 tt_search_positions(Vertex_Index, Vertices, Edges, Grid, Limit, Depth, X, Y, Acc, Result, Scale) :-
+    not(position_occupied(X, Y, Acc)),
     Grid = grid(SizeX, SizeY),
-    Y < SizeY,
-    n_member(Vertex, Vertices, Vertex_Index),
-    New_Positions = [position(Vertex, X, Y) | Acc],
-    vertex_on_edge(Vertex, coordinate(X, Y), Edges, New_Positions),
-    !,
-    Next_Y is Y + 1,
-    tt_search_positions(Vertex_Index, Vertices, Edges, Grid, Limit, Depth, X, Next_Y, Acc, Result, Scale).
-
-tt_search_positions(Vertex_Index, Vertices, Edges, Grid, Limit, Depth, X, Y, Acc, Result, Scale) :-
-    Grid = grid(SizeX, SizeY),
-    Y < SizeY,
-    !,
     n_member(Vertex, Vertices, Vertex_Index),
     New_Positions = [position(Vertex, X, Y) | Acc],
     get_positioned_edges(Edges, New_Positions, Positioned_Edges_Result),
+    not(vertex_on_edge(Vertex, coordinate(X, Y), Edges, New_Positions)),
     not(has_crossings(Positioned_Edges_Result, New_Positions, Scale)),
     Next_Vertex_Index is Vertex_Index + 1,
     search_positions(Next_Vertex_Index, Vertices, Edges, Grid, Limit, Depth, New_Positions, Result, Scale).
 
+tt_search_positions(Vertex_Index, Vertices, Edges, Grid, Limit, Depth, X, Y, Acc, Result, Scale) :-
+    !,
+    Next_Y is Y + 1,
+    tt_search_positions(Vertex_Index, Vertices, Edges, Grid, Limit, Depth, X, Next_Y, Acc, Result, Scale).
 
 % ?- /\/\/\/\
 % position_occupied(1, 2, [position(v1,1,2), position(v2,0,0)]). % true
@@ -691,24 +697,21 @@ get_line_points(Coord1, Coord2, Points) :-
 
     % Bresenham's line algorithm
     Err is Dx - Dy,
-    t_get_line_points(Coord1, Coord2, Dx, Dy, Sx, Sy, Err, [], Points),
+    t_get_line_points(Coord1, Coord2, Dx, Dy, Sx, Sy, Err, [Coord1], Points),
     !.
 
-t_get_line_points(Coord1, Coord2, Dx, Dy, Sx, Sy, Err, Acc, Points) :-
+t_get_line_points(Coord1, Coord2, Dx, Dy, Sx, Sy, Err, Acc, Acc) :-
     Coord1 = coordinate(X1, Y1),
     Coord2 = coordinate(X2, Y2),
-    New_Points = [Coord1 | Acc],
     X1 = X2,
     Y1 = Y2,
-    Points = New_Points,
     !.
 
+% t_get_line_points(coordinate(0,25), coordinate(25,4), 25, 21, 1, -1, 4, [coordinate(0,25)], Points).
 t_get_line_points(Coord1, Coord2, Dx, Dy, Sx, Sy, Err, Acc, Points) :-
-    New_Coord1 = coordinate(New_X, New_Y),
-    New_Points = [Coord1 | Acc],
     e_helper(Err, Dx, Dy, Sx, Sy, Coord1, New_Err, New_X, New_Y),
-    
-    t_get_line_points(New_Coord1, Coord2, Dx, Dy, Sx, Sy, New_Err, New_Points, Points),
+    New_Coord = coordinate(New_X, New_Y),
+    t_get_line_points(New_Coord, Coord2, Dx, Dy, Sx, Sy, New_Err, [New_Coord | Acc], Points),
     !.
 
 
@@ -772,30 +775,38 @@ determine_char(Dx, Dy, Sx, Sy, Char) :-
 
 
 % ?- /\/\/\/\
+% e_helper(10, 4, 4, 1, 1, coordinate(0,0), New_Err, New_X, New_Y). % New_Err = 6, New_X = 1, New_Y = 0.
+% e_helper(2, 4, 4, 1, 1, coordinate(0,0), New_Err, New_X, New_Y). % New_Err = 6, New_X = 1, New_Y = 1.
+% e_helper(-2, 4, 4, 1, 1, coordinate(0,0), New_Err, New_X, New_Y). % New_Err = 2, New_X = 0, New_Y = 1.
+% e_helper(-6, 4, 4, 1, 1, coordinate(0,0), New_Err, New_X, New_Y). % New_Err = -2, New_X = 0, New_Y = 0.
 e_helper(Err, Dx, Dy, Sx, Sy, Coord1, New_Err, New_X, New_Y) :-
-    e_helperX(Err, Dx, Dy, Sx, Sy, Coord1, Temp_Err, New_X),
-    e_helperY(Temp_Err, Dx, Dy, Sx, Sy, Coord1, New_Err, New_Y),
+    E2 is 2 * Err,
+    e_helperX(E2, Err, Dx, Dy, Sx, Sy, Coord1, Temp_Err, New_X),
+    e_helperY(E2, Temp_Err, Dx, Dy, Sx, Sy, Coord1, New_Err, New_Y),
     !.
 
-e_helperX(Err, Dx, Dy, Sx, Sy, Coord1, New_Err, New_X) :-
+e_helperX(E2, Err, Dx, Dy, Sx, Sy, Coord1, New_Err, New_X) :-
     Coord1 = coordinate(X1, _),
-    E2 is 2 * Err,
     E2 > -Dy,
     New_Err is Err - Dy,
     New_X is X1 + Sx,
+
+    % print(['e_helperX:', Err, Dx, Dy, Sx, Sy, Coord1, '->', New_Err, New_X, New_Err, E2 > -Dy]),
+
     !.
 
-e_helperX(Err, Dx, Dy, Sx, Sy, coordinate(X, _), Err, X) :- !.
+e_helperX(E2, Err, Dx, Dy, Sx, Sy, coordinate(X, _), Err, X) :- !.
 
-e_helperY(Err, Dx, Dy, Sx, Sy, Coord1, New_Err, New_Y) :-
+e_helperY(E2, Err, Dx, Dy, Sx, Sy, Coord1, New_Err, New_Y) :-
     Coord1 = coordinate(_, Y1),
-    E2 is 2 * Err,
     E2 < Dx,
     New_Err is Err + Dx,
     New_Y is Y1 + Sy,
+
+    % print(['e_helperY:', Err, Dx, Dy, Sx, Sy, Coord1, '->', New_Err, New_Y, New_Err, E2 < Dx]),
     !.
 
-e_helperY(Err, Dx, Dy, Sx, Sy, coordinate(_, Y), Err, Y) :- !.
+e_helperY(E2, Err, Dx, Dy, Sx, Sy, coordinate(_, Y), Err, Y) :- !.
 
 
 % ?- /\/\/\/\

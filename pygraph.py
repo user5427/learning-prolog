@@ -439,8 +439,8 @@ def get_line_points(self, p1: Tuple[int, int], p2: Tuple[int, int]) -> List[Tupl
         points.append((x1, y1))
         if x1 == x2 and y1 == y2:
             break
+        print(err)
         e2 = 2 * err
-        print(e2)
         if e2 > -dy:
             err -= dy
             x1 += sx
@@ -459,11 +459,12 @@ if __name__ == "__main__":
     """)
     
     # Run tests
-    test_simple_graph()
+    # test_simple_graph()
     # test_tree()
     # test_complex_planar()
     # test_k5()  # This will fail - non-planar!
     # test_star()
+    get_line_points(None, (0, 25), (25, 4))
     
     print("\n" + "="*50)
     print("DONE! Study the backtracking patterns above.")
