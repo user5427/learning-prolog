@@ -1,4 +1,4 @@
-% [SS] Plokščio grafo braižymas.
+% Tadas Riksas, Programu sistemos 3 kursas, 18 var: [SS] Plokščio grafo braižymas.
 
 % !- Define vertices and edges of a graph
 vertex(Vertex).
@@ -239,10 +239,15 @@ printer([H|T]) :-
 % Test 11: Two boxes
 % try([a, b, c, d, e, f, g, h], [edge(a, b), edge(b, c), edge(c, d), edge(d, a), edge(e, f), edge(f, g), edge(g, h), edge(h, e)], grid(7,7), Positions).
 
+% Test 12: Simple cycle with chord
+% try([a, b, c, d], [edge(a, b), edge(b, c), edge(c, d), edge(d, a), edge(a, c)], grid(5,5), Positions).
+
+% Test 13: Star with 6 branches
+% try([center, n1, n2, n3, n4, n5, n6], [edge(center, n1), edge(center, n2), edge(center, n3), edge(center, n4), edge(center, n5), edge(center, n6)], grid(3,3), Positions).
 
 % ?- Entry point for trying to solve and display a graph
 try(Vertices, Edges, Grid, Positions) :-
-    solve(Vertices, Edges, Grid, 100, Positions, scale(3,3)),
+    solve(Vertices, Edges, Grid, 10, Positions, scale(3,3)),
     display(Vertices, Edges, Positions, Grid, scale(3,3), 3).
 
 try(Vertices, Edges, Grid, Positions, Depth_Limit, Scale, Name_Limit) :-
